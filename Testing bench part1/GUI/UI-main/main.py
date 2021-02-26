@@ -13,8 +13,6 @@ import sys
 Time_limit=100
 
 
-
-
 class firstdialog(QDialog):
     def __init__(self):
         super(firstdialog,self).__init__()

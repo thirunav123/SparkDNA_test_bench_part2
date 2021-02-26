@@ -75,7 +75,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="Save">
+  <widget class="QPushButton" name="savebutton">
    <property name="geometry">
     <rect>
      <x>600</x>
@@ -325,7 +325,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>clicked</string>
+    <string>ON/OFF</string>
    </property>
   </widget>
  </widget>

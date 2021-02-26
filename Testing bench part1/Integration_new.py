@@ -6,6 +6,7 @@ from PyQt5.QtGui import QIcon
 import time
 import serial
 import sys
+import csv
 
 ser= serial.Serial(port="/dev/ttyS0",
         baudrate = 9600,
@@ -122,6 +123,9 @@ data=0
 rs_232_connection=0
 rs_485_connection=0
 state=0
+q=0
+serialno_of_DUT=""
+index=1
 
 def get_data_via_rs232():
     global a
@@ -269,17 +273,19 @@ class firstdialog(QDialog):
     def __init__(self):
         super(firstdialog,self).__init__()
         loadUi(r"/home/pi/Desktop/Testing bench part1/GUI/UI-main/firstDialog.ui",self)#load the UI file 
-        self.nextbutton.clicked.connect(self.nextpage) #connect the next page
+        self.nextbutton.clicked.connect(self.secondpage) #connect the next page
                
-    def nextpage(self):
-        self.serialnumber1=self.serialnumber.text()  #value of serial number
+    def secondpage(self):
+        global serialno_of_DUT
+        serialno_of_DUT=self.serialnumber.text()  #value of serial number
         
-        if self.serialnumber1[:3]=='ECL':                   #if not 
-            nextpage=secondDialog(self.serialnumber1)
-            widget.addWidget(nextpage)
+        
+        if serialno_of_DUT[:3]=='1':                   #if not 
+            secondpage=secondDialog(serialno_of_DUT)
+            widget.addWidget(secondpage)
             widget.setCurrentIndex(widget.currentIndex()+1)    #open the next page  
-            print("success",self.serialnumber1)
-        elif(self.serialnumber1!=""):
+            print("success",serialno_of_DUT)
+        elif(serialno_of_DUT!=""):
             mbox=QMessageBox()              #popup the message box widget
             mbox.setWindowTitle("Warning")  
             mbox.setText("oops...  \nEnter a valid format")
@@ -297,43 +303,59 @@ class secondDialog(QDialog):
     def __init__(self,serialno):
         super(secondDialog,self).__init__()
         loadUi(r"/home/pi/Desktop/Testing bench part1/GUI/UI-main/secondDialog.ui",self) #loadui
-        self.backbutton.clicked.connect(self.backfunction)#connect the back page function
-        self.productlineEdit.setText(serialno)
         self.initUI()
+        self.backbutton.clicked.connect(self.backfunction)#connect the back page function
+        self.productlineEdit.setText(serialno)        
+        self.runbutton.clicked.connect(self.onButtonClick)
         self.thirdnextbutton.clicked.connect(self.thirdpage)
+        
         
     def thirdpage(self):
         ser.write(RS232_wreq_tare)
         time.sleep(0.5)
-        thirdpage=thirddialog()
+        thirdpage=thirdDialog()
         widget.addWidget(thirdpage)
         widget.setCurrentIndex(widget.currentIndex()+1)
         ser.write(RS232_wreq_RW)
         time.sleep(0.5)
     
-    def backfunction(self):   
+    def backfunction(self,index):
+        #global index
         backpage=firstdialog()
         widget.addWidget(backpage)
-        widget.setCurrentIndex(widget.currentIndex()+1)   #connect the first page
+        widget.setCurrentIndex(widget.currentIndex()-index)   #connect the first page
         print("firstpage")
     
-    def initUI(self):      
-        self. rs232progressBar.setMaximum(100)  #maxmium limit of progress bar
-        self.rs485progressBar.setMaximum(100)        
-        self.show()
+    def initUI(self):
+       # self.show()
+        self.rs232progressBar.setMaximum(100)  #maxmium limit of progress bar
+        self.rs485progressBar.setMaximum(100)
+        self.stabilityprogressBar.setMaximum(100)
+        self.rs232progressBar.setValue(0)
+        self.rs485progressBar.setValue(0)
+        self.stabilityprogressBar.setValue(0)
+        self.rs232progressBar.show()
+        self.rs485progressBar.show()
+        self.stabilityprogressBar.show()
         self.labelcompletestatus232=self.rs232complelabel   #object definition
-        self.labelcompletestatus232.hide()       #hide the progress bar
+        self.labelcompletestatus232.hide()       
         self.labelcompletestatus485=self.rs485complelabel
         self.labelcompletestatus485.hide()
-        stabilityresult=self.stablecomplelabel
-        self.stablecomplelabel.hide()
+        self.resvalue=self.resultlabel
+        self.resvalue.setStyleSheet("background-color: ")
+        self.stabilityresult=self.stablecomplelabel
+        self.stabilityresult.hide()
         self.testprogress=self.testinprogresslabel
-        self.testprogress.hide()
-        self.runbutton.clicked.connect(self.onButtonClick)
+        self.testprogress.hide()        
+       
 
     def onButtonClick(self):
         global rs_232_connection
-        
+        self.initUI()
+        #self.rs232progressBar.setValue(0)
+        #self.__init__(serialno_of_DUT)
+       # thirdDialog.pagetwo(self)
+        #time.sleep(2)
         RS232_CT=time.time()+RS232_check_time
         count = 0
         while time.time() <= RS232_CT+0.05:
@@ -345,20 +367,19 @@ class secondDialog(QDialog):
                 self.rs232progressBar.setValue(count)
                 break
             else:   
-                self.rs232progressBar.setValue(count)#set the value to the progress bar
+                self.rs232progressBar.setValue(count)   #set the value to the progress bar
         if count>=99:
-            self.rs232progressBar.hide()
-            self.labelcompletestatus232.show()
+            self.rs232progressBar.hide()  #hide the progress bar
             self.labelcompletestatus232.setText("   Connection done  ")
+            self.labelcompletestatus232.show()
             self.labelcompletestatus232.setStyleSheet("background-color: lightgreen")  #CHANGE the background
             rs_232_connection=1
         else:
             self.rs232progressBar.hide()
-            self.labelcompletestatus232.show()
             self.labelcompletestatus232.setText("            Not found  ")
+            self.labelcompletestatus232.show()
             self.labelcompletestatus232.setStyleSheet("background-color: red")
-            rs_232_connection=0
-            
+            rs_232_connection=0   
         RS485_CT=time.time()+RS485_check_time
         count = 0
         while time.time() <= RS485_CT+0.05:
@@ -390,9 +411,9 @@ class secondDialog(QDialog):
         print(rs_232_connection)
         if rs_232_connection:
             loadvalue=get_data_via_rs232()
-            resvalue=self.resultlabel
+            
             if loadvalue > LC_range_min and LC_range_max >loadvalue:
-                resvalue.setStyleSheet("background-color: lightgreen") 
+                self.resvalue.setStyleSheet("background-color: lightgreen") 
             else:
                 resvalue.setStyleSheet("background-color: red")
                 
@@ -430,11 +451,12 @@ class secondDialog(QDialog):
             mbox.setIcon(QMessageBox.Warning)
             x=mbox.exec_()
 
-class thirddialog(QDialog):
+class thirdDialog(QDialog):
     def __init__(self):
-        super(thirddialog,self).__init__()
+        super(thirdDialog,self).__init__()
         loadUi(r"/home/pi/Desktop/Testing bench part1/GUI/UI-main/thirddialog.ui",self) #loadui
-        self.backbutton3.clicked.connect(self.pagetwo) 
+        self.backbutton3.clicked.connect(self.pagetwo)
+        self.savebutton.clicked.connect(self.savetofile)
         self.clickherebutton.clicked.connect(self.calibration) 
         self.weightlabel1=self.weightlabel
         self.showweight()
@@ -504,9 +526,11 @@ class thirddialog(QDialog):
             self.DOPlabel4.setStyleSheet("background-color: red")
             state=0
     def pagetwo(self):
-        backpage=firstdialog()
+        self.qTimer.stop()
+        backpage=secondDialog(serialno_of_DUT)
         widget.addWidget(backpage)
-        widget.setCurrentIndex(widget.currentIndex()+1)
+        widget.setCurrentIndex(widget.currentIndex()-1)
+        
         
     def showweight(self): #connect the first page
         self.weightlabel1.setText(str(get_data_via_rs232())+" g")
@@ -530,7 +554,17 @@ class thirddialog(QDialog):
         else:
             self.DIPlabel3.setStyleSheet("background-color: red") 
         
-         
+    def savetofile(self):
+        global q
+        global index
+        with open(r'/home/pi/Desktop/Testing bench part1/report.csv', 'a') as f:
+           writer = csv.writer(f)
+           writer.writerow([q])
+           q+=1
+        #self.firstDialog.serialnumber.clear()
+        index=2
+        secondDialog.backfunction(self,index)
+        index=1
         '''currentpage=thirddialog()
         widget.setCurrentIndex(widget.currentIndex())
         self.showweight()
