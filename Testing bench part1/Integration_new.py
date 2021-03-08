@@ -125,7 +125,11 @@ rs_485_connection=0
 state=0
 q=0
 serialno_of_DUT=""
-index=1
+index=0
+old1=False
+old2=False
+old3=False
+#secondpage1
 
 def get_data_via_rs232():
     global a
@@ -271,34 +275,49 @@ def rs232_progress_bar_count():
 
 class firstDialog(QDialog):
     def __init__(self):
+       #print("Firstpage")
         super(firstDialog,self).__init__()
         loadUi(r"/home/pi/Desktop/Testing bench part1/GUI/UI-main/firstDialog.ui",self)#load the UI file 
-        self.nextbutton.clicked.connect(self.secondpage) #connect the next page
+        self.nextbutton.clicked.connect(self.secondpage)
+        old1=True
                
     def secondpage(self):
-        global serialno_of_DUT
-        serialno_of_DUT=self.serialnumber.text()  #value of serial number
-       # self.serialnumber.clear()
-        
-        if serialno_of_DUT[:3]=='1':                   #if not 
-            secondpage=secondDialog(serialno_of_DUT)
-            widget.addWidget(secondpage)
-            print("Index",widget.currentIndex()+1)
-            widget.setCurrentIndex(widget.currentIndex()+1)    #open the next page  
-            print("success",serialno_of_DUT)
-        elif(serialno_of_DUT!=""):
-            mbox=QMessageBox()              #popup the message box widget
-            mbox.setWindowTitle("Warning")  
-            mbox.setText("oops...  \nEnter a valid format")
-            mbox.setIcon(QMessageBox.Warning)
-            x=mbox.exec_()
+        global old2
+        global secondpage1
+        if old2:
+            widget.addWidget(secondpage1)
+            widget.setCurrentIndex(widget.currentIndex()+1)
+            #connect the next page
         else:
-            mbox=QMessageBox()              #popup the message box widget
-            mbox.setWindowTitle("Warning")  
-            mbox.setText("oops...  \nEnter a serial number")
-            mbox.setIcon(QMessageBox.Warning)
-            x=mbox.exec_()
+                
+            global serialno_of_DUT
+            serialno_of_DUT=self.serialnumber.text()  #value of serial number
+           # self.serialnumber.clear()
             
+            if serialno_of_DUT[:3]=='1':
+                #if not 
+                secondpage1=secondDialog(serialno_of_DUT)
+                widget.addWidget(secondpage1)
+                #print("Index",widget.currentIndex()+1)
+                widget.setCurrentIndex(widget.currentIndex()+1)
+                old2=True#open the next page  
+                #print("success",serialno_of_DUT)
+                print("Secondpage")
+            elif(serialno_of_DUT!=""):
+                mbox=QMessageBox()              #popup the message box widget
+                mbox.setWindowTitle("Warning")  
+                mbox.setText("oops...  \nEnter a valid format")
+                mbox.setIcon(QMessageBox.Warning)
+                x=mbox.exec_()
+            else:
+                mbox=QMessageBox()              #popup the message box widget
+                mbox.setWindowTitle("Warning")  
+                mbox.setText("oops...  \nEnter a serial number")
+                mbox.setIcon(QMessageBox.Warning)
+                x=mbox.exec_()
+                
+    
+        
       
 class secondDialog(QDialog):
     def __init__(self,serialno):
@@ -311,23 +330,38 @@ class secondDialog(QDialog):
         self.thirdnextbutton.clicked.connect(self.thirdpage)
         
         
+        
     def thirdpage(self):
-        ser.write(RS232_wreq_tare)
-        time.sleep(0.5)
-        thirdpage1=thirdDialog()
+        global old3
+        global thirdpage1
+        if old3:
+            widget.addWidget(thirdpage1)
+            widget.setCurrentIndex(widget.currentIndex()+1)
+            #connect the next page
+        else:
+            ser.write(RS232_wreq_tare)
+            time.sleep(0.5)
+            thirdpage1=thirdDialog()
+            widget.addWidget(thirdpage1)
+            #print("Index",widget.currentIndex()+1)
+            widget.setCurrentIndex(widget.currentIndex()+1)
+            old3=True
+            print("Thirdpage")
+            ser.write(RS232_wreq_RW)
+            time.sleep(0.5)
+        
+    def oldNext3(self):
         widget.addWidget(thirdpage1)
-        print("Index",widget.currentIndex()+1)
         widget.setCurrentIndex(widget.currentIndex()+1)
-        ser.write(RS232_wreq_RW)
-        time.sleep(0.5)
     
-    def backfunction(self,index):
+    def backfunction(self):
         #global index
-        backpage=firstDialog()
-        widget.addWidget(backpage)
-        print("Index",widget.currentIndex()-1)
-        widget.setCurrentIndex(widget.currentIndex()-1)   #connect the first page
-        print("firstpage")
+       # backpage=firstDialog()
+        #widget.addWidget(backpage)
+        widget.addWidget(mainwindow)
+       # print("Index",widget.currentIndex()-1)
+        widget.setCurrentIndex(widget.currentIndex()+1)   #connect the first page
+        print("Firstpage")
     
     def initUI(self):
        # self.show()
@@ -531,10 +565,11 @@ class thirdDialog(QDialog):
             state=0
     def pagetwo(self):
         self.qTimer.stop()
-        backpage=secondDialog(serialno_of_DUT)
-        widget.addWidget(backpage)
-        print("Index",widget.currentIndex()-1)
-        widget.setCurrentIndex(widget.currentIndex()-1)
+        #backpage1=secondDialog(serialno_of_DUT)
+        widget.addWidget(secondpage1)
+        print("Secondpage")
+        #print("Index",widget.currentIndex()-1)
+        widget.setCurrentIndex(widget.currentIndex()+1)
         
         
     def showweight(self): #connect the first page
@@ -560,7 +595,7 @@ class thirdDialog(QDialog):
             self.DIPlabel3.setStyleSheet("background-color: red") 
         
     def savetofile(self):
-        global q
+        global old1,old2,old3,q
         global index
         self.qTimer.stop()
         with open(r'/home/pi/Desktop/Testing bench part1/report.csv', 'a') as f:
@@ -571,12 +606,15 @@ class thirdDialog(QDialog):
         #index=2
         #secondDialog.backfunction(self,index)
         #index=1
+        old1=False
+        old2=False
+        old3=False
         currentpage=firstDialog()
         widget.addWidget(currentpage)
-        print("Index",widget.currentIndex()+1)
+        #print("Index",widget.currentIndex()+1)
         widget.setCurrentIndex(widget.currentIndex()+1)
         #self.showweight()
-        print("samepage")
+        print("Firstpage")
 
 app=QApplication(sys.argv)
 mainwindow=firstDialog()
