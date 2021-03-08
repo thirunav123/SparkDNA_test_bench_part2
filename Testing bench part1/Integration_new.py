@@ -8,7 +8,7 @@ import serial
 import sys
 import csv
 
-ser= serial.Serial(port="/dev/ttyS0",
+ser= serial.Serial(port="/dev/ttyUSB0",
         baudrate = 9600,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_TWO,
@@ -137,7 +137,7 @@ def get_data_via_rs232():
     res=ser.read(a)
     global data
     data=int.from_bytes(res,byteorder='big',signed=True)
-    print("rs232=",data)
+    #print("rs232=",data)
     return (data)
 
 def get_data_via_rs485():
@@ -149,7 +149,7 @@ def get_data_via_rs485():
         a=int.from_bytes(res, byteorder='big',signed=True)
     res=ser.read(a)
     data=int.from_bytes(res,byteorder='big',signed=True)
-    print("rs485=",data)
+    #print("rs485=",data)
     return (data)
 
 def get_DIP_status(pinno):
@@ -162,16 +162,16 @@ def get_DIP_status(pinno):
             a=int.from_bytes(res, byteorder='big',signed=True)
         res=ser.read(a)
         data=int.from_bytes(res,byteorder='big',signed=True)
-        print("DIP1=",data)
+        #print("DIP1=",data)
     elif(pinno==2):
         ser.write(RS232_rreq_DIP2)
         for i in range(3):
             res=ser.read()
             a=int.from_bytes(res, byteorder='big',signed=True)
-            print(a)
+            #print(a)
         res=ser.read(a)
         data=int.from_bytes(res,byteorder='big',signed=True)
-        print("DIP2=",data)
+        #print("DIP2=",data)
     elif(pinno==3):
         ser.write(RS232_rreq_DIP3)
         for i in range(3):
@@ -179,7 +179,7 @@ def get_DIP_status(pinno):
             a=int.from_bytes(res, byteorder='big',signed=True)
         res=ser.read(a)
         data=int.from_bytes(res,byteorder='big',signed=True)
-        print("DIP3=",data)
+        #print("DIP3=",data)
     else:
         
         data=0
@@ -269,20 +269,21 @@ def rs232_progress_bar_count():
     return count
 
 
-class firstdialog(QDialog):
+class firstDialog(QDialog):
     def __init__(self):
-        super(firstdialog,self).__init__()
+        super(firstDialog,self).__init__()
         loadUi(r"/home/pi/Desktop/Testing bench part1/GUI/UI-main/firstDialog.ui",self)#load the UI file 
         self.nextbutton.clicked.connect(self.secondpage) #connect the next page
                
     def secondpage(self):
         global serialno_of_DUT
         serialno_of_DUT=self.serialnumber.text()  #value of serial number
-        
+       # self.serialnumber.clear()
         
         if serialno_of_DUT[:3]=='1':                   #if not 
             secondpage=secondDialog(serialno_of_DUT)
             widget.addWidget(secondpage)
+            print("Index",widget.currentIndex()+1)
             widget.setCurrentIndex(widget.currentIndex()+1)    #open the next page  
             print("success",serialno_of_DUT)
         elif(serialno_of_DUT!=""):
@@ -313,17 +314,19 @@ class secondDialog(QDialog):
     def thirdpage(self):
         ser.write(RS232_wreq_tare)
         time.sleep(0.5)
-        thirdpage=thirdDialog()
-        widget.addWidget(thirdpage)
+        thirdpage1=thirdDialog()
+        widget.addWidget(thirdpage1)
+        print("Index",widget.currentIndex()+1)
         widget.setCurrentIndex(widget.currentIndex()+1)
         ser.write(RS232_wreq_RW)
         time.sleep(0.5)
     
     def backfunction(self,index):
         #global index
-        backpage=firstdialog()
+        backpage=firstDialog()
         widget.addWidget(backpage)
-        widget.setCurrentIndex(widget.currentIndex()-index)   #connect the first page
+        print("Index",widget.currentIndex()-1)
+        widget.setCurrentIndex(widget.currentIndex()-1)   #connect the first page
         print("firstpage")
     
     def initUI(self):
@@ -346,7 +349,8 @@ class secondDialog(QDialog):
         self.stabilityresult=self.stablecomplelabel
         self.stabilityresult.hide()
         self.testprogress=self.testinprogresslabel
-        self.testprogress.hide()        
+        self.testprogress.hide()
+        
        
 
     def onButtonClick(self):
@@ -355,7 +359,7 @@ class secondDialog(QDialog):
         #self.rs232progressBar.setValue(0)
         #self.__init__(serialno_of_DUT)
        # thirdDialog.pagetwo(self)
-        #time.sleep(2)
+        time.sleep(2)
         RS232_CT=time.time()+RS232_check_time
         count = 0
         while time.time() <= RS232_CT+0.05:
@@ -529,6 +533,7 @@ class thirdDialog(QDialog):
         self.qTimer.stop()
         backpage=secondDialog(serialno_of_DUT)
         widget.addWidget(backpage)
+        print("Index",widget.currentIndex()-1)
         widget.setCurrentIndex(widget.currentIndex()-1)
         
         
@@ -557,21 +562,24 @@ class thirdDialog(QDialog):
     def savetofile(self):
         global q
         global index
+        self.qTimer.stop()
         with open(r'/home/pi/Desktop/Testing bench part1/report.csv', 'a') as f:
            writer = csv.writer(f)
            writer.writerow([q])
            q+=1
-        #self.firstDialog.serialnumber.clear()
-        index=2
-        secondDialog.backfunction(self,index)
-        index=1
-        '''currentpage=thirddialog()
-        widget.setCurrentIndex(widget.currentIndex())
-        self.showweight()
-        print("samepage")'''
+        #firstDialog.serialnumber.clear()
+        #index=2
+        #secondDialog.backfunction(self,index)
+        #index=1
+        currentpage=firstDialog()
+        widget.addWidget(currentpage)
+        print("Index",widget.currentIndex()+1)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+        #self.showweight()
+        print("samepage")
 
 app=QApplication(sys.argv)
-mainwindow=firstdialog()
+mainwindow=firstDialog()
 #get_data_via_rs232()
 # secondpage=secondDialog()
 widget=QtWidgets.QStackedWidget()
