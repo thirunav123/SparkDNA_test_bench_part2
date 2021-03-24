@@ -1,0 +1,25 @@
+Serial No.,RS232,RS485,Range,Stability,Count,DIP1,DIP2,DIP3
+ECL02,Done,Done,In Range,Not Stable,3363,Off,Off,Off
+ECL0254,Done,Done,In Range,Not Stable,3409,Off,Off,Off
+ECL02,Done,Done,In Range,Not Stable,3378,On,On,On
+ECL02,Done,Done,In Range,Not Stable,3358,On,On,On
+ECL02,Done,Done,In Range,Not Stable,3376,On,On,On
+ECL02,Done,Done,In Range,Not Stable,3387,On,On,On
+ECL02,Done,Done,In Range,Not Stable,3387,On,On,On
+ECL02435346,Done,Done,In Range,Not Stable,3364,Off,Off,Off
+ECLC02,Done,Done,In Range,Stable,4621,On,On,On
+ECLC02,Done,Done,In Range,Stable,4618,On,On,On
+ECLC02,Done,Done,In Range,Stable,4619,On,On,On
+ECLC02,,,,,,Off,Off,Off
+ECLC02,Done,Done,In Range,Stable,4617,On,On,On
+ECLC022443,Done,Done,In Range,Stable,4620,On,On,On
+ECLC022545,Done,Done,In Range,Stable,4620,On,On,On
+ECLC02,Done,Done,In Range,Stable,4620,On,On,On
+ECLC02,Done,Done,In Range,Stable,4620,On,On,On
+ECLC02,Done,Done,In Range,Stable,4620,On,On,On
+ECLC02,Done,Done,In Range,Stable,4620,On,On,On
+ECLC02,Done,Done,In Range,Stable,4619,On,On,On
+ECLC02,Done,Done,In Range,Stable,4620,On,On,On
+ECLC0254,Done,Done,In Range,Not Stable,4620,On,On,On
+ECLC026535,Done,Done,In Range,Stable,4611,On,On,On
+ECLC0214596987,Done,Done,In Range,Stable,4610,On,On,On
